@@ -1,0 +1,12 @@
+{
+  "domain": "easyplant",
+  "name": "EasyPlant",
+  "documentation": "https://github.com/caphm/easyplant",
+  "dependencies": [],
+  "config_flow": false,
+  "codeowners": [
+    "@caphm"
+  ],
+  "requirements": [],
+  "homeassistant": "0.96.0"
+}
