@@ -54,7 +54,7 @@ READING_SOIL_EC = "soil_ec"
 READING_BATTERY = "battery"
 
 READINGS = {
-    READING_LIGHT_MMOL: "mmol",
+    # READING_LIGHT_MMOL: "mmol",
     READING_LIGHT_LUX: "lux",
     READING_TEMP: TEMP_CELSIUS,
     READING_ENV_HUMID: "%",
@@ -128,7 +128,6 @@ DEFAULT_CHECK_DAYS = 3
 
 SCHEMA_SENSORS = vol.Schema(
     {
-        vol.Optional(READING_LIGHT_MMOL): cv.entity_id,
         vol.Optional(READING_LIGHT_LUX): cv.entity_id,
         vol.Optional(READING_TEMP): cv.entity_id,
         vol.Optional(READING_ENV_HUMID): cv.entity_id,
@@ -240,7 +239,6 @@ class Plant(Entity):
 
     def __init__(self, hass, name, config):
         """Initialize the Plant component."""
-        self._hass = hass
         self._config = config
         self._sensors = dict()
         self._readings = dict()
@@ -253,7 +251,7 @@ class Plant(Entity):
             (self._config[CONF_DISCOVERY_PREFIX] + "_"
              if self._config[CONF_DISCOVERY_PREFIX]
              else ""),
-            self._name)
+            cv.slugify(self._name))
         _LOGGER.debug(
             "Sensors starting with %s will be added to %s",
             self._sensor_basename,
@@ -269,9 +267,7 @@ class Plant(Entity):
             self._sensors[entity_id] = reading
             self._add_reading(reading, entity_id)
 
-        self._conf_check_days = 3  # default check interval: 3 days
-        if CONF_CHECK_DAYS in self._config:
-            self._conf_check_days = self._config[CONF_CHECK_DAYS]
+        self._conf_check_days = self._config[CONF_CHECK_DAYS]
         self._brightness_history = DailyHistory(self._conf_check_days)
 
     def _add_reading(self, reading, entity_id):
@@ -324,7 +320,7 @@ class Plant(Entity):
         if (state == STATE_UNKNOWN
             or (state == STATE_UNAVAILABLE
                 and any(
-                    not self._hass.states.is_state(sensor, STATE_UNAVAILABLE)
+                    not self.hass.states.is_state(sensor, STATE_UNAVAILABLE)
                     for sensor in self._readings[reading]))):
             _LOGGER.debug(
                 "Ignoring status '%s' for %s",
@@ -419,7 +415,6 @@ class Plant(Entity):
                 event.data.get("old_state"),
                 event.data.get("new_state"),
             )
-        # async_track_state_change(self.hass, list(self._sensors), self.state_changed)
         self.hass.bus.async_listen(EVENT_STATE_CHANGED, state_change_listener)
 
         # Update state from statically assigned sensors
@@ -429,10 +424,10 @@ class Plant(Entity):
                 self.state_changed(entity_id, None, state)
 
         # Try to update state from dynamically discovered sensors
-        # for entity_id in self.hass.states.async_entity_ids(SENSOR_DOMAIN):
-        #     if entity_id.startswith(self._sensor_basename):
-        #         self.state_changed(
-        #             entity_id, None, self.hass.states.get(entity_id))
+        for entity_id in self.hass.states.async_entity_ids(SENSOR_DOMAIN):
+            if entity_id.startswith(self._sensor_basename):
+                self.state_changed(
+                    entity_id, None, self.hass.states.get(entity_id))
 
         if ENABLE_LOAD_HISTORY and "recorder" in self.hass.config.components:
             # only use the database if it's configured
@@ -570,4 +565,3 @@ class DailyHistory:
         if not isinstance(value, (int, float)):
             return
         self._max_dict[day] = value
-
