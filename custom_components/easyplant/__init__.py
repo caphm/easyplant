@@ -251,7 +251,7 @@ class Plant(Entity):
             (self._config[CONF_DISCOVERY_PREFIX] + "_"
              if self._config[CONF_DISCOVERY_PREFIX]
              else ""),
-            cv.slugify(self._name))
+            cv.slugify(self._name).lower())
         _LOGGER.debug(
             "Sensors starting with %s will be added to %s",
             self._sensor_basename,
