@@ -164,8 +164,6 @@ PLANT_SCHEMA = vol.Schema(
 )
 
 DOMAIN = "easyplant"
-GROUP_NAME_ALL_PLANTS = "all easyplants"
-ENTITY_ID_ALL_PLANTS = group.ENTITY_ID_FORMAT.format("all_easyplants")
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -193,7 +191,7 @@ ENABLE_LOAD_HISTORY = True
 
 async def async_setup(hass, config):
     """Set up the Plant component."""
-    component = EntityComponent(_LOGGER, DOMAIN, hass, group_name=GROUP_NAME_ALL_PLANTS)
+    component = EntityComponent(_LOGGER, DOMAIN, hass)
     plantdb = {}
     if config[DOMAIN].get(CONF_DATABASE_FILE):
         with open(config[DOMAIN][CONF_DATABASE_FILE], "r", encoding="utf-8") as csvfile:
